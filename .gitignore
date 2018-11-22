@@ -1,0 +1,4 @@
+#ignore binaries and config files
+
+vendor/
+.idea/
