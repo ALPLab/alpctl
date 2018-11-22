@@ -14,9 +14,9 @@ echo "version: $version"
 
 # run container to generate binaries
 # linux binary
-docker run --rm -v "$PWD":/usr/src/alp.sh -w /usr/src/alp.sh ${IMAGE_BASE}:latest go build -v
+docker run --rm -v "$PWD":/usr/src/alp -w /usr/src/alp ${IMAGE_BASE}:latest go build -v
 # windows binary
-docker run --rm -v "$PWD":/usr/src/alp.exe -w /usr/src/alp.exe -e GOOS=windows -e GOARCH=386 ${IMAGE_BASE}:latest go build -v
+docker run --rm -v "$PWD":/usr/src/alp -w /usr/src/alp -e GOOS=windows -e GOARCH=386 ${IMAGE_BASE}:latest go build -v
 
 # tag it
 git add -A
