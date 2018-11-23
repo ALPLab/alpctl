@@ -2,10 +2,10 @@
 
 set -ex
 
-IMAGE_BASE=matthias/alp-client
+IMAGE_BASE=prodalpcrreg.azurecr.io/alplab-client-v2
 
 # ensure we're up to date
-git pull
+# git pull
 
 # bump version
 docker run --rm -v "$PWD":/app treeder/bump patch
@@ -32,4 +32,4 @@ docker push ${IMAGE_BASE}:latest
 docker push ${IMAGE_BASE}:$version
 
 
-# docker push  matthias/alp-client
+# docker push  prodalpcrreg.azurecr.io/alplab-client-v2
