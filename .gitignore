@@ -1,2 +1,10 @@
+#ignore binaries
 alp
 alp.exe
+
+#ignore config files
+alp.yml
+alp.json
+alp.toml
+alp.hcl
+alp.properties
