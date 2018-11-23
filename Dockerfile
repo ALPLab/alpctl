@@ -1,8 +1,10 @@
-FROM golang:1.11.1
+FROM golang:1.11.1-alpine
 
 WORKDIR /go/src/alp
 COPY . .
 ADD VERSION .
+
+RUN apk add --no-cache git
 
 RUN go get -d -v github.com/spf13/cobra \
 github.com/spf13/viper \
