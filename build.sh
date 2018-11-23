@@ -2,6 +2,6 @@
 
 set -ex
 
-IMAGE_BASE=matthias/alp-client
+IMAGE_BASE=prodalpcrreg.azurecr.io/alplab-client-v2
 
 docker build -t ${IMAGE_BASE}:latest .
