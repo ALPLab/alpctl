@@ -1,5 +1,5 @@
-# alp-client
-ALP.Lab Client
+# alplab-client-v2
+This client is a command line tool for developers to use services of ALP.Lab individually.
 
 ## Examples
 
