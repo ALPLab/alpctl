@@ -78,15 +78,14 @@ func radarTransform(ctx context.Context, Host string, Port int, certFile string,
 		return fmt.Errorf("Car file could not be read: '%s'\n", err)
 	}
 
-	// dial to server with gRPC
 	fmt.Printf("Connection secure: %t\n", !*Plaintext)
-
 	Server := Host + ":" + strconv.Itoa(Port)
 	fmt.Println("Server:", Server)
 
 	var creds credentials.TransportCredentials
 	var conn *grpc.ClientConn
 
+	// dial to Server with gRPC
 	if *Plaintext == false {
 		// connect with TLS certificate
 		creds, err = credentials.NewClientTLSFromFile(certFile, "")
@@ -95,7 +94,6 @@ func radarTransform(ctx context.Context, Host string, Port int, certFile string,
 		}
 		conn, err = grpc.Dial(Server, grpc.WithTransportCredentials(creds))
 		if err != nil {
-			fmt.Print(conn)
 			return fmt.Errorf("Did not connect: '%s'\n", err)
 		}
 	} else {
@@ -113,15 +111,18 @@ func radarTransform(ctx context.Context, Host string, Port int, certFile string,
 		return fmt.Errorf("Client could not be created: '%v'", err)
 	}
 
-	// call function client.Transform()
+	// transform timeout 30 seconds
+	ctxTimeout, cancel := context.WithTimeout(ctx, 30*time.Second)
+	// call transform
 	log.Println("Sending transform request and waiting for response...")
-	response, err := client.Transform(ctx, &rtrans.TransformRequest{Car: car, Radar: radar})
+	response, err := client.Transform(ctxTimeout, &rtrans.TransformRequest{Car: car, Radar: radar})
 	if err != nil {
-		return fmt.Errorf("Error when calling transform: '%s'\n", err)
+		return fmt.Errorf("Transform failed: '%s'\n", err)
 	}
-
+	defer cancel()
 	defer conn.Close()
 
+	// encode response in JSON
 	out, err := proto.Marshal(response)
 	if err != nil {
 		return fmt.Errorf("Failed to encode response: '%v'", err)
@@ -131,16 +132,15 @@ func radarTransform(ctx context.Context, Host string, Port int, certFile string,
 	now := time.Now().Format(time.RFC3339)
 	datetime := strings.Replace(strings.Split(now, "+")[0], ":", "-", -1)
 
-	// name output file according to
+	// name output file according to convention and create file
 	outPath := filepath.Join(outDir, "car_rsd_sensor_"+datetime+".osi3.pb")
-
 	file, err := os.Create(outPath)
 	if err != nil {
 		return fmt.Errorf("Could not create file: '%v'", err)
 	}
 	defer file.Close()
 
-	// Create a buffered writer from the file and write bytes to buffer
+	// create a buffered writer from the file and write bytes to buffer
 	bufferedWriter := bufio.NewWriter(file)
 	_, err = bufferedWriter.Write(out)
 	if err != nil {
