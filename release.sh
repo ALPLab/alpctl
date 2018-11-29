@@ -26,7 +26,7 @@ docker run --rm -v "$PWD":/usr/src/alp-$version -w /usr/src/alp-$version ${IMAGE
 docker run --rm -v "$PWD":/usr/src/alp-$version -w /usr/src/alp-$version -e GOOS=windows -e GOARCH=386 ${IMAGE_BASE}:latest go build -v
 
 # check if binary works
-./alp --help | grep ALP.Lab
+./alp-$version --help | grep ALP.Lab
 
 # push it
 git push
