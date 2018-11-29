@@ -1,10 +1,2 @@
-#ignore binaries
-alp
-alp.exe
-
-#ignore config files
-alp.yml
-alp.json
-alp.toml
-alp.hcl
-alp.properties
+#ignore binaries and config files
+alp*
