@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package main
 
 import (
-	rtrans "alp/cmd/api/infra-radar-transform"
 	"bufio"
 	"fmt"
+	rtrans "github.com/ALPLab/protorepo-infra-radar-transform-go"
 	"io/ioutil"
 	"log"
 	"os"

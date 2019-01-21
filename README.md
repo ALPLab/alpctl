@@ -1,9 +1,9 @@
-# alplab-client-v2
+# Alplab Client
 This client is a command line tool for developers to use services of ALP.Lab individually.
 
 ## Examples
 
-#### Road Side Sensor to Simulation Transformation  
+#### Road Side Sensor to Simulation Transformation (OSI)
 
 This transforms roadside sensor data from ASFINAG flow of traffic services 
 on selected Austrian Roads into the ego car's coordinate system. 
@@ -11,7 +11,8 @@ The transformation is part of ALP.Lab cloud services; the results are
 returned into the [Open Simulation Interface](https://github.com/OpenSimulationInterface/open-simulation-interface)
 to be of direct use in your simulation applications. 
 
-In these examples the files with roadside and car sensor data as well as the config file were placed in the binaries' directory itself, but they can also be some place else and be referenced relative or absolute with the corresponding flag.
+In these examples the files with roadside and car sensor data as well as the config file were placed in the binaries' 
+directory itself, but they can also be some place else and be referenced relative or absolute with the corresponding flag.
 
 Bash Command Example:
 

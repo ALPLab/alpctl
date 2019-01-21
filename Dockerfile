@@ -1,21 +1,18 @@
-FROM golang:1.11.1
+FROM golang:1.11.4 AS builder
+RUN mkdir -p /ALPLab/
+WORKDIR /ALPLab/
 
-WORKDIR /go/src/alp
 COPY . .
-ADD VERSION .
 
-RUN go get -d -v github.com/spf13/cobra \
-github.com/spf13/viper \
-github.com/gogo/protobuf/proto \
-google.golang.org/grpc \
-golang.org/x/net/context \
-github.com/inconshreveable/mousetrap
+RUN go mod download && go install ./...
+RUN GOOS=windows GOARCH=386 go install ./...
+RUN GOOS=darwin GOARCH=amd64 go install ./...
 
-RUN go install -v github.com/spf13/cobra \
-github.com/spf13/viper \
-github.com/gogo/protobuf/proto \
-google.golang.org/grpc \
-golang.org/x/net/context \
-github.com/inconshreveable/mousetrap
+FROM debian:jessie-slim
+RUN mkdir -p /release/win && mkdir -p /release/linux  && mkdir -p /release/mac
 
-CMD ["alp"]
+COPY --from=builder /go/bin/alp /release/linux/
+COPY --from=builder /go/bin/windows_386/alp.exe /release/win/
+COPY --from=builder /go/bin/darwin_amd64/alp /release/mac/
+
+ENTRYPOINT ["/release/linux/alp"]

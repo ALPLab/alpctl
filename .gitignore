@@ -1,2 +1,4 @@
 #ignore binaries and config files
-alp*
+
+vendor/
+.idea/
