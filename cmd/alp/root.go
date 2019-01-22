@@ -50,7 +50,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "$HOME/.alp/alp.json", "config file")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file, $HOME/.alp/alp.json")
 	rootCmd.PersistentFlags().StringP("host", "H", "localhost", "host address of the alplab cloud service")
 	rootCmd.PersistentFlags().IntP("port", "P", 443, "port")
 	rootCmd.PersistentFlags().StringP("certificate", "C", "", "SSL/TLS certificate to use")
@@ -60,6 +60,12 @@ func init() {
 	viper.BindPFlag("port", rootCmd.PersistentFlags().Lookup("port"))
 	viper.BindPFlag("output", rootCmd.PersistentFlags().Lookup("output"))
 	viper.BindPFlag("certificate", rootCmd.PersistentFlags().Lookup("certificate"))
+	home, err := homedir.Dir()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	viper.SetDefault("certificate", home+"/.alp/ca-chain.cert.pem")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -76,8 +82,8 @@ func initConfig() {
 		}
 
 		viper.SetConfigName("alp")          // name of config file (without extension)
-		viper.AddConfigPath(home + "/.alp") // call multiple times to add many search paths
-		viper.AddConfigPath(".")            //
+		viper.AddConfigPath(home + "/.alp") // config file search path 1
+		viper.AddConfigPath(".")            // config file search path 2
 	}
 	// Read in environment variables that match, but do nothing if not read
 	viper.SetEnvPrefix("ALP")
