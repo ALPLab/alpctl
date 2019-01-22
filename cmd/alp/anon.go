@@ -25,12 +25,12 @@ var Video string
 // anonCmd represents the anon command
 var anonCmd = &cobra.Command{
 	Use:   "anon",
-	Short: "Anonymize Test Drive Video",
+	Short: "Anonymize Test Drive Video (not yet available)",
 	Long: `
 A service to anonymize videos to make the recorded data available for
 further testing and development while guaranteeing to protect recorded
 personal information of other traffic participants and the like by
-removing it as reliable as technically feasible.`,
+removing it as reliable as technically feasible. `,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("anon called")
 	},

@@ -16,7 +16,7 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"github.com/mitchellh/go-homedir"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -50,10 +50,10 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default '$HOME/alp.json')")
-	rootCmd.PersistentFlags().StringP("host", "H", "localhost", "host address")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "$HOME/.alp/alp.json", "config file")
+	rootCmd.PersistentFlags().StringP("host", "H", "localhost", "host address of the alplab cloud service")
 	rootCmd.PersistentFlags().IntP("port", "P", 443, "port")
-	rootCmd.PersistentFlags().StringP("certificate", "C", "", "SSL/TLS certificate to handshake with server")
+	rootCmd.PersistentFlags().StringP("certificate", "C", "", "SSL/TLS certificate to use")
 	rootCmd.PersistentFlags().StringP("output", "O", ".", "output directory")
 
 	viper.BindPFlag("host", rootCmd.PersistentFlags().Lookup("host"))
@@ -65,19 +65,25 @@ func init() {
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	if cfgFile != "" {
-		// Use config file from the flag.
+		// Use config file from the flag if present
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Search config in binary's directory with name "alp" (without extension).
-		viper.AddConfigPath(".")
-		viper.SetConfigName("alp")
-	}
 
-	viper.AutomaticEnv() // read in environment variables that match
+		home, err := homedir.Dir()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Error reading config file: '%s'", err)
+		viper.SetConfigName("alp")          // name of config file (without extension)
+		viper.AddConfigPath(home + "/.alp") // call multiple times to add many search paths
+		viper.AddConfigPath(".")            //
 	}
-	fmt.Println("Using config file:", viper.ConfigFileUsed())
+	// Read in environment variables that match, but do nothing if not read
+	viper.SetEnvPrefix("ALP")
+	viper.AutomaticEnv()
+
+	// Find and read the config files, but do nothing if not read
+	viper.ReadInConfig()
+
 }
