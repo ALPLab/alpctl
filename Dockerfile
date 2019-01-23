@@ -6,13 +6,11 @@ COPY . .
 
 RUN go mod download && go install ./...
 RUN GOOS=windows GOARCH=386 go install ./...
-RUN GOOS=darwin GOARCH=amd64 go install ./...
 
 FROM debian:jessie-slim
-RUN mkdir -p /release/win && mkdir -p /release/linux  && mkdir -p /release/mac
+RUN mkdir -p /release
 
-COPY --from=builder /go/bin/alp /release/linux/
-COPY --from=builder /go/bin/windows_386/alp.exe /release/win/
-COPY --from=builder /go/bin/darwin_amd64/alp /release/mac/
+COPY --from=builder /go/bin/alp /release/
+COPY --from=builder /go/bin/windows_386/alp.exe /release/
 
 ENTRYPOINT ["/release/linux/alp"]
