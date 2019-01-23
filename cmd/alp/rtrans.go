@@ -63,42 +63,41 @@ func init() {
 	rootCmd.AddCommand(rtransCmd)
 }
 
-func radarTransform(ctx context.Context, Host string, Port int, certFile string,
-	outDir string, Radar *string, Car *string, Plaintext *bool) error {
+func radarTransform(ctx context.Context, host string, port int, certFile string,
+	outDir string, radar *string, car *string, plaintext *bool) error {
 
-	// read JSON file with radar data
-	radar, err := ioutil.ReadFile(*Radar)
+	// read JSON file with radarData data
+	radarData, err := ioutil.ReadFile(*radar)
 	if err != nil {
-		return fmt.Errorf("Radar file could not be read: '%s'\n", err)
+		return fmt.Errorf("radar file could not be read: '%s'\n", err)
 	}
 
-	// read GPX file with ego car's GPS tracking data
-	car, err := ioutil.ReadFile(*Car)
+	// read GPX file with ego carData's GPS tracking data
+	carData, err := ioutil.ReadFile(*car)
 	if err != nil {
-		return fmt.Errorf("Car file could not be read: '%s'\n", err)
+		return fmt.Errorf("car file could not be read: '%s'\n", err)
 	}
-
-	fmt.Printf("Connection secure: %t\n", !*Plaintext)
-	Server := Host + ":" + strconv.Itoa(Port)
-	fmt.Println("Server:", Server)
+	fmt.Printf("Connection secure: %t\n", !*plaintext)
+	server := createHostUrl(host, port)
+	fmt.Printf("Connection to %s \n", server)
 
 	var creds credentials.TransportCredentials
 	var conn *grpc.ClientConn
 
-	// dial to Server with gRPC
-	if *Plaintext == false {
+	// dial to server with gRPC
+	if *plaintext == false {
 		// connect with TLS certificate
 		creds, err = credentials.NewClientTLSFromFile(certFile, "")
 		if err != nil {
 			return fmt.Errorf("Could not fetch certificate: '%s'\n", err)
 		}
-		conn, err = grpc.Dial(Server, grpc.WithTransportCredentials(creds))
+		conn, err = grpc.Dial(server, grpc.WithTransportCredentials(creds))
 		if err != nil {
 			return fmt.Errorf("Did not connect: '%s'\n", err)
 		}
 	} else {
 		// connect without authentication
-		conn, err = grpc.Dial(Server, grpc.WithInsecure())
+		conn, err = grpc.Dial(server, grpc.WithInsecure())
 		if err != nil {
 			fmt.Print(conn)
 			return fmt.Errorf("Did not connect: '%s'\n", err)
@@ -115,7 +114,7 @@ func radarTransform(ctx context.Context, Host string, Port int, certFile string,
 	ctxTimeout, cancel := context.WithTimeout(ctx, 30*time.Second)
 	// call transform
 	log.Println("Sending transform request and waiting for response...")
-	response, err := client.Transform(ctxTimeout, &rtrans.TransformRequest{Car: car, Radar: radar})
+	response, err := client.Transform(ctxTimeout, &rtrans.TransformRequest{Car: carData, Radar: radarData})
 	if err != nil {
 		return fmt.Errorf("Transform failed: '%s'\n", err)
 	}
@@ -150,4 +149,10 @@ func radarTransform(ctx context.Context, Host string, Port int, certFile string,
 	log.Printf("Response written to: '%v'", outPath)
 
 	return nil
+}
+
+func createHostUrl(host string, port int) string {
+	server := host + ":" + strconv.Itoa(port)
+	fmt.Println("Server:", server)
+	return server
 }

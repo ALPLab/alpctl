@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 	"os"
 	"testing"
@@ -21,30 +19,25 @@ func TestReadConfigFromEnv(t *testing.T) {
 	os.Setenv("ALP_HOST", "zauberelfenfee")
 	initConfig()
 	var hostValue = viper.Get("host")
+	os.Setenv("ALP_HOST", "")
 	if hostValue != "zauberelfenfee" {
 		t.Errorf("zauberelfenfee should have been set. was %s", hostValue)
 	}
 }
 
-func TestReadConfigFromCmdParams(t *testing.T) {
-	os.Args = []string{"rtrans", "--host=param_host"}
-	main()
+func TestReadConfigFromFileHostSsh(t *testing.T) {
+	cfgFile = "./testdata/alp-ssh.json"
+	initConfig()
 	var hostValue = viper.Get("host")
-	if hostValue != "param_host" {
-		t.Errorf("param_host should have been read from config. Value read %s", hostValue)
+	if hostValue != "https://my_host" {
+		t.Errorf("host should have been read from config. Value read %s", hostValue)
 	}
 }
 
-func TestReadDefaultCertDirectory(t *testing.T) {
+func TestRtransHostnameCreation(t *testing.T) {
+	hostConcat := createHostUrl("https://my_world", 1234)
 
-	home, err := homedir.Dir()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	main()
-	var certificatePath = viper.GetString("certificate")
-	if certificatePath != home+"/.alp/ca-chain.cert.pem" {
-		t.Errorf("certificate chain default %s ain't as it should be", certificatePath)
+	if hostConcat != "https://my_world:1234" {
+		t.Errorf("host should have been https://my_world:1234. Value read %s", hostConcat)
 	}
 }
