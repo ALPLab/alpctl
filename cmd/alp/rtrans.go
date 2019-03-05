@@ -17,14 +17,16 @@ package main
 import (
 	"bufio"
 	"fmt"
-	rtrans "github.com/ALPLab/protorepo-infra-radar-transform-go"
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
+
+	rtrans "github.com/ALPLab/protorepo-infra-radar-transform-go"
 
 	proto "github.com/gogo/protobuf/proto"
 	cobra "github.com/spf13/cobra"
@@ -35,8 +37,9 @@ import (
 )
 
 var (
-	Radar, Car string
-	Plaintext  bool
+	Radar     string
+	Car       string
+	Plaintext bool
 )
 
 var rtransCmd = &cobra.Command{
@@ -69,17 +72,26 @@ func radarTransform(ctx context.Context, host string, port int, certFile string,
 	// read JSON file with radarData data
 	radarData, err := ioutil.ReadFile(*radar)
 	if err != nil {
-		return fmt.Errorf("radar file could not be read: '%s'\n", err)
+		return fmt.Errorf("radar file could not be read: '%s'", err)
 	}
 
 	// read GPX file with ego carData's GPS tracking data
 	carData, err := ioutil.ReadFile(*car)
 	if err != nil {
-		return fmt.Errorf("car file could not be read: '%s'\n", err)
+		return fmt.Errorf("car file could not be read: '%s'", err)
 	}
-	fmt.Printf("Connection secure: %t\n", !*plaintext)
-	server := createHostUrl(host, port)
-	fmt.Printf("Connection to %s \n", server)
+
+	// print to console
+	fmt.Printf("\nConnection secure: %t\n", !*plaintext)
+	server := createHostURL(host, port)
+	fmt.Printf("Connecting to: '%s'\n", server)
+
+	// check if correct certFile was provided
+	if !path.IsAbs(certFile) {
+		err := fmt.Errorf("Error: '%s' is not absolute; please provide absolute path", certFile)
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
 
 	var creds credentials.TransportCredentials
 	var conn *grpc.ClientConn
@@ -89,25 +101,25 @@ func radarTransform(ctx context.Context, host string, port int, certFile string,
 		// connect with TLS certificate
 		creds, err = credentials.NewClientTLSFromFile(certFile, "")
 		if err != nil {
-			return fmt.Errorf("Could not fetch certificate: '%s'\n", err)
+			return fmt.Errorf("could not fetch certificate: '%s'", err)
 		}
 		conn, err = grpc.Dial(server, grpc.WithTransportCredentials(creds))
 		if err != nil {
-			return fmt.Errorf("Did not connect: '%s'\n", err)
+			return fmt.Errorf("did not connect: '%s'", err)
 		}
 	} else {
 		// connect without authentication
 		conn, err = grpc.Dial(server, grpc.WithInsecure())
 		if err != nil {
 			fmt.Print(conn)
-			return fmt.Errorf("Did not connect: '%s'\n", err)
+			return fmt.Errorf("did not connect: '%s'", err)
 		}
 	}
 
 	// create new client
 	client := rtrans.NewInfraRadarPositionTransformClient(conn)
 	if err != nil {
-		return fmt.Errorf("Client could not be created: '%v'", err)
+		return fmt.Errorf("client could not be created: '%v'", err)
 	}
 
 	// transform timeout 30 seconds
@@ -116,7 +128,7 @@ func radarTransform(ctx context.Context, host string, port int, certFile string,
 	log.Println("Sending transform request and waiting for response...")
 	response, err := client.Transform(ctxTimeout, &rtrans.TransformRequest{Car: carData, Radar: radarData})
 	if err != nil {
-		return fmt.Errorf("Transform failed: '%s'\n", err)
+		return fmt.Errorf("transform failed: '%s'", err)
 	}
 	defer cancel()
 	defer conn.Close()
@@ -124,7 +136,7 @@ func radarTransform(ctx context.Context, host string, port int, certFile string,
 	// encode response in JSON
 	out, err := proto.Marshal(response)
 	if err != nil {
-		return fmt.Errorf("Failed to encode response: '%v'", err)
+		return fmt.Errorf("failed to encode response: '%v'", err)
 	}
 
 	// get current time in RFC3339 format and strip milliseconds
@@ -135,7 +147,7 @@ func radarTransform(ctx context.Context, host string, port int, certFile string,
 	outPath := filepath.Join(outDir, "car_rsd_sensor_"+datetime+".osi3.pb")
 	file, err := os.Create(outPath)
 	if err != nil {
-		return fmt.Errorf("Could not create file: '%v'", err)
+		return fmt.Errorf("could not create file: '%v'", err)
 	}
 	defer file.Close()
 
@@ -143,7 +155,7 @@ func radarTransform(ctx context.Context, host string, port int, certFile string,
 	bufferedWriter := bufio.NewWriter(file)
 	_, err = bufferedWriter.Write(out)
 	if err != nil {
-		return fmt.Errorf("Could not write to file: '%v'", err)
+		return fmt.Errorf("could not write to file: '%v'", err)
 	}
 
 	log.Printf("Response written to: '%v'", outPath)
@@ -151,8 +163,7 @@ func radarTransform(ctx context.Context, host string, port int, certFile string,
 	return nil
 }
 
-func createHostUrl(host string, port int) string {
+func createHostURL(host string, port int) string {
 	server := host + ":" + strconv.Itoa(port)
-	fmt.Println("Server:", server)
 	return server
 }

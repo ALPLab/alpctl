@@ -16,8 +16,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/mitchellh/go-homedir"
 	"os"
+
+	"github.com/mitchellh/go-homedir"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -50,7 +51,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file, $HOME/.alp/alp.json")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file, $HOME/.alp/alp.XXX")
 	rootCmd.PersistentFlags().StringP("host", "H", "localhost", "host address of the alplab cloud service")
 	rootCmd.PersistentFlags().IntP("port", "P", 443, "port")
 	rootCmd.PersistentFlags().StringP("certificate", "C", "", "SSL/TLS certificate to use")
@@ -60,12 +61,6 @@ func init() {
 	viper.BindPFlag("port", rootCmd.PersistentFlags().Lookup("port"))
 	viper.BindPFlag("output", rootCmd.PersistentFlags().Lookup("output"))
 	viper.BindPFlag("certificate", rootCmd.PersistentFlags().Lookup("certificate"))
-	home, err := homedir.Dir()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	viper.SetDefault("certificate", home+"/.alp/ca-chain.cert.pem")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -74,16 +69,13 @@ func initConfig() {
 		// Use config file from the flag if present
 		viper.SetConfigFile(cfgFile)
 	} else {
-
 		home, err := homedir.Dir()
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-
 		viper.SetConfigName("alp")          // name of config file (without extension)
-		viper.AddConfigPath(home + "/.alp") // config file search path 1
-		viper.AddConfigPath(".")            // config file search path 2
+		viper.AddConfigPath(home + "/.alp") // config file search path
 	}
 	// Read in environment variables that match, but do nothing if not read
 	viper.SetEnvPrefix("ALP")
@@ -91,5 +83,4 @@ func initConfig() {
 
 	// Find and read the config files, but do nothing if not read
 	viper.ReadInConfig()
-
 }
