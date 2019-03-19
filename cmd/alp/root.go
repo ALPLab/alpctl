@@ -25,8 +25,9 @@ import (
 )
 
 var (
-	cfgFile, Host, outDir string
-	Port                  int
+	cfgFile string
+	Host    string
+	Port    int
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -51,8 +52,8 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file, $HOME/.alp/alp.XXX")
-	rootCmd.PersistentFlags().StringP("host", "H", "localhost", "host address of the alplab cloud service")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file")
+	rootCmd.PersistentFlags().StringP("host", "H", "localhost", "host address of alplab cloud service")
 	rootCmd.PersistentFlags().IntP("port", "P", 443, "port")
 	rootCmd.PersistentFlags().StringP("certificate", "C", "", "SSL/TLS certificate to use")
 	rootCmd.PersistentFlags().StringP("output", "O", ".", "output directory")
@@ -63,10 +64,10 @@ func init() {
 	viper.BindPFlag("certificate", rootCmd.PersistentFlags().Lookup("certificate"))
 }
 
-// initConfig reads in config file and ENV variables if set.
+// initConfig reads in command parameters, config files and environment variables
 func initConfig() {
 	if cfgFile != "" {
-		// Use config file from the flag if present
+		// use config file specified by command parameter if set
 		viper.SetConfigFile(cfgFile)
 	} else {
 		home, err := homedir.Dir()
@@ -77,10 +78,11 @@ func initConfig() {
 		viper.SetConfigName("alp")          // name of config file (without extension)
 		viper.AddConfigPath(home + "/.alp") // config file search path
 	}
-	// Read in environment variables that match, but do nothing if not read
+
+	// read in matching environment variables, but do nothing if not read
 	viper.SetEnvPrefix("ALP")
 	viper.AutomaticEnv()
 
-	// Find and read the config files, but do nothing if not read
+	// find and read the config files, but do nothing if not read
 	viper.ReadInConfig()
 }
